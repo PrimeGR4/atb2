@@ -1,0 +1,83 @@
+local toggle = false
+local ScreenGui = Instance.new("ScreenGui")
+local button = Instance.new("TextButton")
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+ScreenGui.Parent = game.CoreGui
+
+button.Size = UDim2.new(0, 200, 0, 50)
+button.Position = UDim2.new(0.5, -100, 0.5, -25)
+button.Text = "🔴 [ ATB2 ] 🔴"
+button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+button.TextColor3 = Color3.fromRGB(0, 0, 0)
+button.TextScaled = true
+button.Font = Enum.Font.GothamBold
+button.Parent = ScreenGui
+button.Draggable = true
+button.Active = true
+
+-- إرسال الإشعار عند التشغيل
+game.StarterGui:SetCore("SendNotification", {
+    Title = "VRS";
+    Text = "أهلاً بك بسكربت Virus_48";
+    Duration = 5;
+})
+
+-- جعل الزر قابل للتحريك
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = button.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+button.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- وظيفة تشغيل ونقل اللاعب
+button.MouseButton1Click:Connect(function()
+    toggle = not toggle
+    
+    if toggle then
+        button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        button.Text = "🟢 [ ATB2 ] 🟢"
+        
+        while toggle do
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+            
+            humanoidRootPart.CFrame = CFrame.new(-674.08, -9.16, 474.56)
+            wait(0.2)
+            humanoidRootPart.CFrame = CFrame.new(-673.75, -8.95, 477.57)
+            wait(0.2)
+            humanoidRootPart.CFrame = CFrame.new(-653.47, -9.16, 474.88)
+            wait(0.2)
+            humanoidRootPart.CFrame = CFrame.new(-653.39, -8.95, 477.26)
+            wait(0.2)
+        end
+    else
+        button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        button.Text = "🔴 [ ATB2 ] 🔴"
+    end
+end)
