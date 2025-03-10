@@ -1,0 +1,93 @@
+local toggle = false
+local savedPosition = nil
+local ScreenGui = Instance.new("ScreenGui")
+local button = Instance.new("TextButton")
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+ScreenGui.Parent = game.CoreGui
+
+button.Size = UDim2.new(0, 200, 0, 50)
+button.Position = UDim2.new(0.5, -100, 0.5, -25)
+button.Text = "🔴 [ ATB1 ] 🔴"
+button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+button.TextColor3 = Color3.fromRGB(0, 0, 0)
+button.TextScaled = true
+button.Font = Enum.Font.GothamBold
+button.Parent = ScreenGui
+button.Draggable = true
+button.Active = true
+
+-- إرسال الإشعار عند التشغيل
+game.StarterGui:SetCore("SendNotification", {
+    Title = "VRS";
+    Text = "أهلاً بك بسكربت Virus_48 - ATB1";
+    Duration = 5;
+})
+
+-- جعل الزر قابل للتحريك
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = button.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+button.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- تشغيل وإيقاف النزول
+button.MouseButton1Click:Connect(function()
+    toggle = not toggle
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    if toggle then
+        button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        button.Text = "🟢 [ ATB1 ] 🟢"
+        
+        -- حفظ موقع اللاعب قبل النزول
+        savedPosition = humanoidRootPart.Position
+        
+        -- التحقق إذا مات اللاعب لإيقاف السكربت
+        character:FindFirstChildOfClass("Humanoid").Died:Connect(function()
+            toggle = false
+            button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            button.Text = "🔴 [ ATB1 ] 🔴"
+        end)
+        
+        -- النزول بسرعة 1,000,000
+        while toggle do
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, -1000000, 0)
+            wait(0.05) -- التحكم في معدل التكرار للحفاظ على السرعة المطلوبة
+        end
+    else
+        button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        button.Text = "🔴 [ ATB1 ] 🔴"
+        
+        -- إرجاع اللاعب للمكان الأصلي
+        if savedPosition then
+            humanoidRootPart.CFrame = CFrame.new(savedPosition)
+        end
+    end
+end)
